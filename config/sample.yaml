@@ -8,5 +8,11 @@ mqtt:
     host: "127.0.0.1:1883"
     topic: "foo/abc"
   server2:
-    host: "1.2.3.4:1883"
+    host: "1.2.3.4:8883"
     topic: "bar/def"
+    ca: "path/to/cert/ca/file.crt" # optional, onyl used for TLS connection
+    tls_insecure: false # optional, must be set to true for self signed certificates
+    user: "username" # optional, only for auth via username + password
+    password: "password" # optional, only for auth via username + password
+    public_key: "path/to/cert/public/key/file.crt" # optional, only for auth via certificate
+    private_key: "path/to/cert/private/key/file.crt" # optional, only for auth via certificate
