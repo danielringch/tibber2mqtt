@@ -1,11 +1,11 @@
 import argparse, asyncio, os, yaml
 from mqtt import Mqtt
-from helpers import get_argument
+from helpers import *
 from tibberlive import Tibberlive
 from watchdog import Watchdog
 from logger import Logger, logger
 
-__version__ = "0.1.0"
+__version__ = "1.2.0"
         
 
 async def main():
@@ -23,7 +23,7 @@ async def main():
         exit()
 
     try:
-        log_file = get_argument(config, ('log', 'path'), 'T2M_LOG_PATH', optional=True)
+        log_file = get_optional_argument(config, 'log', 'path', varname='T2M_LOG_PATH')
         logger.add_file(log_file)
     except Exception as e:
         print(f'Failed to open log file {log_file}: {e}')
@@ -34,14 +34,14 @@ async def main():
         mqtts.append(Mqtt(mqttname, mqttconfig))
     
     tibber = None
-    watchdog = Watchdog()
+    watchdog = Watchdog(config)
 
     while True:
         if tibber is None:
             tibber = Tibberlive(config.get('tibber', {}), mqtts)
             watchdog.subscription_success(await tibber.start())
         if not watchdog.check(tibber.last_data):
-            tibber.stop()
+            await tibber.stop()
             tibber = None
         await asyncio.sleep(2)
 

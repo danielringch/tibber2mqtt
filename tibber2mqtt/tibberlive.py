@@ -1,5 +1,7 @@
-import aiohttp, datetime, tibber, threading, asyncio
-from enum import Enum
+import aiohttp, datetime, asyncio
+
+from gql import gql, Client
+from gql.transport.websockets import WebsocketsTransport
 
 from helpers import get_argument
 from mqtt import Mqtt
@@ -8,24 +10,20 @@ from logger import *
 class Tibberlive:
     def __init__(self, config: dict, mqtts: list):
 
-        home = get_argument(config, ('home'), "T2M_TIBBER_HOME")
-        self.__token = get_argument(config, ('token'), "T2M_TIBBER_TOKEN")
+        home = get_argument(config, 'home', varname="T2M_TIBBER_HOME")
+        self.__token = get_argument(config, 'token', varname="T2M_TIBBER_TOKEN")
 
         self.__available_request = {
-            'query': '{ viewer { home(id: "%s") { features { realTimeConsumptionEnabled } } } }' % home
+            'query': '{ viewer { home(id: "%s") { features { realTimeConsumptionEnabled } } websocketSubscriptionUrl } }' % home
         }
-        self.__subscription_request = {
-            'query': 'subscription{ liveMeasurement( homeId:"%s" ) { timestamp power } }' % home
-        }
+        self.__subscription_request = gql('subscription{ liveMeasurement( homeId:"%s" ) { timestamp power } }' % home)
 
-        self.__home = None
+        self.__client = None
+        self.__task = None
 
         self.__mqtts = mqtts
 
         self.__last_timestamp = datetime.datetime.fromtimestamp(0)
-
-    def __del__(self):
-        self.stop()
 
     async def start(self):
         logger.log(f'Subscribing to tibber live data.')
@@ -36,37 +34,45 @@ class Tibberlive:
                 logger.log(f'Subscription to tibber live data failed: {e}')
                 return False
             available = response_json['data']['viewer']['home']['features']['realTimeConsumptionEnabled']
+            subscription_url = response_json['data']['viewer']['websocketSubscriptionUrl']
             if not available:
                 logger.log('No tibber live data available .')
                 return False
+            
+            transport = WebsocketsTransport(
+                url=subscription_url,
+                init_payload={'token': self.__token},
+                headers={'User-Agent': 'HomeAssistant/2023.2'})
 
-            tibber_connection = tibber.Tibber(self.__token, websession=session, user_agent="HomeAssistant/2023.2")
-            await tibber_connection.update_info()
+            self.__client = Client(transport=transport)
+            await self.__client.connect_async(reconnecting=True)
 
-            self.__home = tibber_connection.get_homes()[0]
-            try:
-                await self.__home.rt_subscribe(self.__power_callback)
-            except Exception as e:
-                logger.log(f'Subscription to tibber live data failed: {e}')
-                return False
+            self.__task = asyncio.create_task(self.__run())
+            self.__last_timestamp = datetime.datetime.now()
         return True
 
-    def stop(self):
-        if self.__home is not None:
-            try:
-                self.__home.rt_unsubscribe()
-            except:
-                pass
+    async def stop(self):
+        if self.__task is not None:
+            self.__task.cancel()
+            self.__task = None
+        if self.__client is not None:
+            await self.__client.close_async()
+            self.__client = None
+
 
     @property
     def last_data(self):
         return self.__last_timestamp
     
-    def __power_callback(self, data):
-        self.__last_timestamp = datetime.datetime.now()
-        power = data['data']['liveMeasurement']['power']
-        for mqtt in self.__mqtts:
-            mqtt.send(round(power + 0.5))
+    async def __run(self):
+        try:
+            async for response in self.__client.session.subscribe(self.__subscription_request):
+                self.__last_timestamp = datetime.datetime.now()
+                power = response['liveMeasurement']['power']
+                for mqtt in self.__mqtts:
+                    mqtt.send(round(power + 0.5))
+        except Exception as e:
+            logger.log(f'Receiving live data failed: {e}')
 
     async def __post(self, session, query):
         headers = {

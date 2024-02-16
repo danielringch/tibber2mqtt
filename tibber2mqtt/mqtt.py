@@ -1,7 +1,7 @@
 import struct
 import paho.mqtt.client as mqtt
 from ssl import CERT_NONE
-from helpers import get_recursive_key
+from helpers import *
 from logger import *
 
 class Mqtt():
@@ -11,21 +11,21 @@ class Mqtt():
         self.__mqtt = mqtt.Client()
         self.__mqtt.on_connect = self.__on_connect
 
-        ip, port = get_recursive_key(config, 'host').split(':')
+        ip, port = get_argument(config, 'host').split(':')
 
-        ca = get_recursive_key(config, 'ca', optional=True)
-        public_key = get_recursive_key(config, 'public_key', optional=True)
-        private_key = get_recursive_key(config, 'private_key', optional=True)
+        ca = get_optional_argument(config, 'ca')
+        public_key = get_optional_argument(config, 'public_key')
+        private_key = get_optional_argument(config, 'private_key')
         if ca or public_key or private_key:
-            insecure = get_recursive_key(config, 'tls_insecure', optional=True) == True
+            insecure = get_optional_argument(config, 'tls_insecure') == True
             self.__mqtt.tls_set(ca_certs=ca, certfile=public_key, keyfile=private_key, cert_reqs=CERT_NONE if insecure else None)
 
-        user = get_recursive_key(config, 'user', optional=True)
-        password = get_recursive_key(config, 'password', optional=True)
+        user = get_optional_argument(config, 'user')
+        password = get_optional_argument(config, 'password')
         if user or password:
             self.__mqtt.username_pw_set(user, password)
 
-        self.__topic = get_recursive_key(config, 'topic')
+        self.__topic = get_argument(config, 'topic')
 
         self.__mqtt.connect(ip, int(port), 60)
         self.__mqtt.loop_start()

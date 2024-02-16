@@ -1,27 +1,24 @@
 import os
-from functools import reduce
 
-def get_argument(config: dict, keys: list, varname: str, optional=False):
-    try:
-        return os.environ[varname]
-    except:
+def get_optional_argument(config: dict, *keys: str, varname: str = None): # type: ignore
+    if varname is not None:
         try:
-            for key in keys:
-                dict = dict[key]
-            return str(dict)
+            return os.environ[varname]
         except:
-            if optional:
-                return None
-            print(f'Error: Missing config entry or environment variable {varname}.')
-            exit()
+            pass
 
-def get_recursive_key(dict, *keys, optional=False):
-    final_key = keys[-1]
-    for key in keys[:-1]:
-        dict = dict.get(key, {})
-    value = dict.get(final_key, None)
-    if optional or value:
-        return value
-    else:
-        print(f'Key {".".join(keys)} not found in configuration.')
+    sub_config = config
+    try:
+        for key in keys:
+            sub_config = sub_config[key]
+        return sub_config
+    except:
+        return None
+
+def get_argument(config: dict, *keys: str, varname: str = None): # type: ignore
+    raw_value = get_optional_argument(config, *keys, varname=varname)
+    if raw_value is None:
+        print(f'Error: Missing config entry or environment variable for {".".join(keys)}.')
         exit()
+    else:
+        return raw_value

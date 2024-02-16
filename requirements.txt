@@ -1,3 +1,4 @@
+aiohttp
+gql[websockets]
 paho-mqtt
-pytibber
 pyyaml

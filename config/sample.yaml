@@ -16,3 +16,7 @@ mqtt:
     password: "password" # optional, only for auth via username + password
     public_key: "path/to/cert/public/key/file.crt" # optional, only for auth via certificate
     private_key: "path/to/cert/private/key/file.crt" # optional, only for auth via certificate
+watchdog:
+  tolerance: 20 # maximum time between two live data packets (in seconds)
+  timeout: 5 # delay between losing live data and reconnect (in seconds)
+  maximum_timeout: 600 # maximum delay between losing live data and reconnect (in seconds)
