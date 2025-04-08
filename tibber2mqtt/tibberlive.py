@@ -1,11 +1,10 @@
-import aiohttp, datetime, asyncio
+import aiohttp, asyncio, datetime, logging
 
 from gql import gql, Client
 from gql.transport.websockets import WebsocketsTransport
 
 from helpers import get_argument
 from mqtt import Mqtt
-from logger import *
 
 class Tibberlive:
     def __init__(self, config: dict, mqtts: list):
@@ -26,17 +25,17 @@ class Tibberlive:
         self.__last_timestamp = datetime.datetime.fromtimestamp(0)
 
     async def start(self):
-        logger.log(f'Subscribing to tibber live data.')
+        logging.info(f'Subscribing to tibber live data.')
         async with aiohttp.ClientSession() as session:
             try:
                 response_json = await self.__post(session, self.__available_request)
             except Exception as e:
-                logger.log(f'Subscription to tibber live data failed: {e}')
+                logging.error(f'Subscription to tibber live data failed: {e}')
                 return False
             available = response_json['data']['viewer']['home']['features']['realTimeConsumptionEnabled']
             subscription_url = response_json['data']['viewer']['websocketSubscriptionUrl']
             if not available:
-                logger.log('No tibber live data available .')
+                logging.error('No tibber live data available .')
                 return False
             
             transport = WebsocketsTransport(
@@ -72,7 +71,7 @@ class Tibberlive:
                 for mqtt in self.__mqtts:
                     mqtt.send(round(power + 0.5))
         except Exception as e:
-            logger.log(f'Receiving live data failed: {e}')
+            logging.error(f'Receiving live data failed: {e}')
 
     async def __post(self, session, query):
         headers = {

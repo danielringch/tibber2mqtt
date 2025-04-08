@@ -1,6 +1,5 @@
-import datetime
+import datetime, logging
 
-from logger import *
 from helpers import get_argument
 
 class Watchdog:

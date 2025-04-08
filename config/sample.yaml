@@ -1,5 +1,7 @@
 log:
+  level: "INFO" # optional, log level, possible values are DEBUG, INFO, WARNING, ERROR, CRITICAL
   path: "~/foo.log" # optional; alternatively, use environment variable T2M_LOG_PATH
+  count: 0 # optional; number of saved old log files. Zero does not delete any old log file.
 tibber:
   token: "tibbertoken" # alternatively, use environment variable T2M_TIBBER_TOKEN
   home: "homeid" # alternatively, use environment variable T2M_TIBBER_TOKEN

@@ -1,8 +1,7 @@
-import struct
+import logging, struct
 import paho.mqtt.client as mqtt
 from ssl import CERT_NONE
 from helpers import *
-from logger import *
 
 class Mqtt():
     def __init__(self, name: str, config: dict):
@@ -35,7 +34,7 @@ class Mqtt():
 
     def send(self, value):
         self.__mqtt.publish(self.__topic, struct.pack('!H', int(value)), qos=0, retain=False)
-        logger.log(f'[{self.__name}] Sent {value} to {self.__topic}')
+        logging.debug(f'[{self.__name}] Sent {value} to {self.__topic}')
 
     def __on_connect(self, client, userdata, flags, rc):
-        logger.log(f'[{self.__name}] MQTT connected with code {rc}.')
+        logging.info(f'[{self.__name}] MQTT connected with code {rc}.')
