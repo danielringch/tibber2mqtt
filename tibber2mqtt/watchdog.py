@@ -1,45 +1,27 @@
 import datetime, logging
 
 from helpers import get_argument
+from tibberlive import Tibberlive
 
 class Watchdog:
     def __init__(self, config: dict):
         tolerance = int(get_argument(config, 'watchdog', 'tolerance'))
         self.__tolerance = datetime.timedelta(seconds=tolerance)
 
-        timeout = int(get_argument(config, 'watchdog', 'timeout'))
-        self.__timeout = datetime.timedelta(seconds=timeout)
-        self.__current_timeout = self.__timeout
+        self.__timeout = int(get_argument(config, 'watchdog', 'timeout'))
 
-        maximum_timeout = int(get_argument(config, 'watchdog', 'maximum_timeout'))
-        self.__maximum_timeout = datetime.timedelta(seconds=maximum_timeout)
+        self.__maximum_timeout = int(get_argument(config, 'watchdog', 'maximum_timeout'))
 
-        self.__lost_at = None
+        self.__current_timeout = None
 
-    def check(self, last_timestamp):
-        now = datetime.datetime.now()
-        if last_timestamp + self.__tolerance < now:
-            if self.__lost_at is None:
-                logger.log('Lost tibber live data.')
-                self.__lost_at = now
-                return True
-            seconds_until_reconnect = (self.__current_timeout - (now - self.__lost_at)).total_seconds()
-            if seconds_until_reconnect <= 0:
-                return False
-            else:
-                logger.log(f'{round(seconds_until_reconnect)}s until reconnect.')
+    def check(self, tibber: Tibberlive):
+        if (tibber.last_data + self.__tolerance) < datetime.datetime.now():
+            logging.error('Lost tibber live data.')
+            self.__current_timeout = self.__timeout \
+                    if not self.__current_timeout \
+                    else min(self.__maximum_timeout, 2 * self.__current_timeout)
+            logging.debug(f'{round(self.__current_timeout)} s until reconnect.')
         else:
-            self.__reset_timeout()
-            self.__lost_at = None
-        return True
-            
-    def subscription_success(self, success):
-        self.__lost_at = None
-        if success:
-            self.__reset_timeout()
-        else:
-            self.__timeout = min (self.__timeout * 2, self.__maximum_timeout)
-            logger.log(f'Reconnect attempt in {round(self.__timeout.total_seconds())} seconds.')
+            self.__current_timeout = None
 
-    def __reset_timeout(self):
-        self.__current_timeout = self.__timeout
+        return self.__current_timeout

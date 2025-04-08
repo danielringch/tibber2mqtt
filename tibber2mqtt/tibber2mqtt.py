@@ -54,11 +54,14 @@ async def main():
     while True:
         if tibber is None:
             tibber = Tibberlive(config.get('tibber', {}), mqtts)
-            watchdog.subscription_success(await tibber.start())
-        if not watchdog.check(tibber.last_data):
+            await tibber.start()
+        timeout = watchdog.check(tibber)
+        if timeout:
             await tibber.stop()
             tibber = None
-        await asyncio.sleep(2)
+            await asyncio.sleep(timeout)
+        else:
+            await asyncio.sleep(2)
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
