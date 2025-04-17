@@ -15,7 +15,7 @@ class Watchdog:
         self.__current_timeout = None
 
     def check(self, tibber: Tibberlive):
-        if (tibber.last_data + self.__tolerance) < datetime.datetime.now():
+        if (not tibber.connected) or ((tibber.last_data + self.__tolerance) < datetime.datetime.now()):
             logging.error('Lost tibber live data.')
             self.__current_timeout = self.__timeout \
                     if not self.__current_timeout \

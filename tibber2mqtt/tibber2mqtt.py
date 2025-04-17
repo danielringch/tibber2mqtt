@@ -52,16 +52,20 @@ async def main():
     watchdog = Watchdog(config)
 
     while True:
-        if tibber is None:
-            tibber = Tibberlive(config.get('tibber', {}), mqtts)
-            await tibber.start()
-        timeout = watchdog.check(tibber)
-        if timeout:
-            await tibber.stop()
-            tibber = None
-            await asyncio.sleep(timeout)
-        else:
-            await asyncio.sleep(2)
+        try:
+            if tibber is None:
+                tibber = Tibberlive(config.get('tibber', {}), mqtts)
+                await tibber.start()
+            timeout = watchdog.check(tibber)
+            if timeout:
+                await tibber.stop()
+                tibber = None
+                await asyncio.sleep(timeout)
+            else:
+                await asyncio.sleep(1)
+        except Exception as e:
+            logging.error(f'Cycle failed: {e}')
+            await asyncio.sleep(1)
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()

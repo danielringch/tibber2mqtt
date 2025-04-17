@@ -24,7 +24,7 @@ This program publishes realtime consumption data from Tibber to one or more MQTT
 
 ## **Prerequisites**
 
-- Python version 3.8 or newer with pip + venv
+- Python version 3.11 or newer with pip + venv
 
 This program should run in any OS, but I have no capacity to test this, so feedback is appreciated. My test machines run Ubuntu and Raspbian.
 

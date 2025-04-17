@@ -5,6 +5,8 @@ log:
 tibber:
   token: "tibbertoken" # alternatively, use environment variable T2M_TIBBER_TOKEN
   home: "homeid" # alternatively, use environment variable T2M_TIBBER_TOKEN
+  api_timeout: 5 # optional, timeout of the live data availability check (in seconds)
+  websocket_timeout: 30 # optional, timeout of the websocket connect (in seconds)
 mqtt:
   server1: # a name of your choise, will be shown in the logs
     host: "127.0.0.1:1883"
@@ -21,4 +23,4 @@ mqtt:
 watchdog:
   tolerance: 20 # maximum time between two live data packets (in seconds)
   timeout: 5 # delay between losing live data and reconnect (in seconds)
-  maximum_timeout: 600 # maximum delay between losing live data and reconnect (in seconds)
+  maximum_timeout: 60 # maximum delay between losing live data and reconnect (in seconds)

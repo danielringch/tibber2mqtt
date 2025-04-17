@@ -3,14 +3,17 @@ import aiohttp, asyncio, datetime, logging
 from gql import gql, Client
 from gql.transport.websockets import WebsocketsTransport
 
-from helpers import get_argument
-from mqtt import Mqtt
+from helpers import get_argument, get_optional_argument, walk_tree
+
+_TIMESTAMP_DISCONNECTED = datetime.datetime.min
 
 class Tibberlive:
     def __init__(self, config: dict, mqtts: list):
 
         home = get_argument(config, 'home', varname="T2M_TIBBER_HOME")
         self.__token = get_argument(config, 'token', varname="T2M_TIBBER_TOKEN")
+        self.__api_timeout = int(get_optional_argument(config, 'api_timeout', default=5))
+        self.__websocket_timeout = int(get_optional_argument(config, 'websocket_timeout', default=30))
 
         self.__available_request = {
             'query': '{ viewer { home(id: "%s") { features { realTimeConsumptionEnabled } } websocketSubscriptionUrl } }' % home
@@ -22,21 +25,26 @@ class Tibberlive:
 
         self.__mqtts = mqtts
 
-        self.__last_timestamp = datetime.datetime.fromtimestamp(0)
+        self.__last_timestamp = _TIMESTAMP_DISCONNECTED
 
     async def start(self):
-        logging.info(f'Subscribing to tibber live data.')
+        logging.info(f'Subscribing to tibber live data')
         async with aiohttp.ClientSession() as session:
             try:
-                response_json = await self.__post(session, self.__available_request)
+                async with asyncio.timeout(self.__api_timeout):
+                    response_json = await self.__post(session, self.__available_request)
+            except asyncio.TimeoutError:
+                logging.error(f'Subscription to tibber live data failed: available request timeout')
+                return False
             except Exception as e:
                 logging.error(f'Subscription to tibber live data failed: {e}')
                 return False
-            available = response_json['data']['viewer']['home']['features']['realTimeConsumptionEnabled']
-            subscription_url = response_json['data']['viewer']['websocketSubscriptionUrl']
-            if not available:
-                logging.error('No tibber live data available .')
+            available = walk_tree(response_json, 'data', 'viewer', 'home', 'features', 'realTimeConsumptionEnabled')
+            subscription_url = walk_tree(response_json, 'data', 'viewer', 'websocketSubscriptionUrl')
+            if not (available and subscription_url):
+                logging.error('No tibber live data available')
                 return False
+            logging.debug(f'Live data available at url {subscription_url}')
             
             transport = WebsocketsTransport(
                 url=subscription_url,
@@ -44,9 +52,16 @@ class Tibberlive:
                 headers={'User-Agent': 'HomeAssistant/2023.2'})
 
             self.__client = Client(transport=transport)
-            await self.__client.connect_async(reconnecting=True)
+            try:
+                async with asyncio.timeout(self.__websocket_timeout):
+                    await self.__client.connect_async(reconnecting=True)
+            except asyncio.TimeoutError:
+                logging.error(f'Subscription to tibber live data failed: websocket timeout')
+                await self.__client.close_async()
+                return False
 
             self.__task = asyncio.create_task(self.__run())
+            logging.debug('Receive loop started')
             self.__last_timestamp = datetime.datetime.now()
         return True
 
@@ -58,6 +73,9 @@ class Tibberlive:
             await self.__client.close_async()
             self.__client = None
 
+    @property
+    def connected(self):
+        return self.__last_timestamp > _TIMESTAMP_DISCONNECTED
 
     @property
     def last_data(self):
@@ -72,6 +90,7 @@ class Tibberlive:
                     mqtt.send(round(power + 0.5))
         except Exception as e:
             logging.error(f'Receiving live data failed: {e}')
+            self.__last_timestamp = _TIMESTAMP_DISCONNECTED
 
     async def __post(self, session, query):
         headers = {
