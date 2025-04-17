@@ -5,7 +5,7 @@ from helpers import *
 from tibberlive import Tibberlive
 from watchdog import Watchdog
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
         
 
 async def main():
