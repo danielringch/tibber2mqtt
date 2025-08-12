@@ -33,7 +33,7 @@ class Mqtt():
         self.__mqtt.loop_stop()
 
     def send(self, value):
-        self.__mqtt.publish(self.__topic, struct.pack('!H', int(value)), qos=0, retain=False)
+        self.__mqtt.publish(self.__topic, struct.pack('!h', int(value)), qos=0, retain=False)
         logging.debug(f'[{self.__name}] Sent {value} to {self.__topic}')
 
     def __on_connect(self, client, userdata, flags, rc):

@@ -18,7 +18,7 @@ class Tibberlive:
         self.__available_request = {
             'query': '{ viewer { home(id: "%s") { features { realTimeConsumptionEnabled } } websocketSubscriptionUrl } }' % home
         }
-        self.__subscription_request = gql('subscription{ liveMeasurement( homeId:"%s" ) { timestamp power } }' % home)
+        self.__subscription_request = gql('subscription{ liveMeasurement( homeId:"%s" ) { timestamp power powerProduction } }' % home)
 
         self.__client = None
         self.__task = None
@@ -85,9 +85,10 @@ class Tibberlive:
         try:
             async for response in self.__client.session.subscribe(self.__subscription_request):
                 self.__last_timestamp = datetime.datetime.now()
-                power = response['liveMeasurement']['power']
+                consumption = response['liveMeasurement']['power']
+                production = response['liveMeasurement']['powerProduction']
                 for mqtt in self.__mqtts:
-                    mqtt.send(round(power + 0.5))
+                    mqtt.send(round(consumption - production))
         except Exception as e:
             logging.error(f'Receiving live data failed: {e}')
             self.__last_timestamp = _TIMESTAMP_DISCONNECTED
