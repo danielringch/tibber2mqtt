@@ -7,6 +7,8 @@ class Mqtt():
     def __init__(self, name: str, config: dict):
         self.__name = name
 
+        self.__format = '!h' if get_optional_argument(config, 'use_int16', default=False) else '!i'
+
         self.__mqtt = mqtt.Client()
         self.__mqtt.on_connect = self.__on_connect
 
@@ -33,7 +35,7 @@ class Mqtt():
         self.__mqtt.loop_stop()
 
     def send(self, value):
-        self.__mqtt.publish(self.__topic, struct.pack('!h', int(value)), qos=0, retain=False)
+        self.__mqtt.publish(self.__topic, struct.pack(self.__format, int(value)), qos=0, retain=False)
         logging.debug(f'[{self.__name}] Sent {value} to {self.__topic}')
 
     def __on_connect(self, client, userdata, flags, rc):

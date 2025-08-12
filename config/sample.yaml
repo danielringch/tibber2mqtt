@@ -14,6 +14,7 @@ mqtt:
   server2:
     host: "1.2.3.4:8883"
     topic: "bar/def"
+    use_int16: true # optional, switches the payload to int16; use this only if your consumption/ production never exceeds +/- 32 kW
     ca: "path/to/cert/ca/file.crt" # optional, onyl used for TLS connection
     tls_insecure: false # optional, must be set to true for self signed certificates
     user: "username" # optional, only for auth via username + password

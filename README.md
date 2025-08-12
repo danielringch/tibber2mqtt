@@ -7,6 +7,8 @@ If you are a customer of [Tibber](https://tibber.com/) and use a [Tibber Pulse](
 
 This program publishes realtime consumption data from Tibber to one or more MQTT brokers of your choise.
 
+The power consumption/ production value is published via MQTT as a single int16 or int32 value in Watts, negative values indicate power production.
+
 ## Get tibber token and home id
 
 * Go to https://developer.tibber.com/settings/access-token , log in with your Tibber credentials and you will see the access token
