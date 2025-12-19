@@ -24,13 +24,21 @@ The power consumption/ production value is published via MQTT as a single int16 
 ```
 * Execute the query (play button above the text box) and you will see your home id in the left text box
 
-## **Prerequisites**
+## **Configuration**
+
+The configuration is done via yaml file. The example file can be found in [config/sample.yaml](config/sample.yaml)
+
+To keep sensitive content out of config files, some parameters can be replaced by environment variables. See the example config file for the enviroment variable names.
+
+## Usage without docker
+
+### **Prerequisites**
 
 - Python version 3.11 or newer with pip + venv
 
 This program should run in any OS, but I have no capacity to test this, so feedback is appreciated. My test machines run Ubuntu and Raspbian.
 
-## **Install**
+### **Install**
 
 ```
 git clone https://github.com/danielringch/tibber2mqtt.git
@@ -39,18 +47,16 @@ source <path to virtual environment>/bin/activate
 python3 -m pip install -r requirements.txt
 ```
 
-## **Configuration**
-
-The configuration is done via yaml file. The example file can be found in [config/sample.yaml](config/sample.yaml)
-
-To keep sensitive content out of config files, some parameters can be replaced by environment variables. See the example config file for the enviroment variable names.
-
-## **Usage**
+## **Run**
 
 ```
 source <path to virtual environment>/bin/activate
 python3 -B tibber2mqtt/tibber2mqtt.py --config /path/to/your/config/file.yaml
 ```
+
+## Usage with docker
+
+TBD
 
 ## **Get support**
 
