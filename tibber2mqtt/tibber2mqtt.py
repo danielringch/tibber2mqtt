@@ -5,7 +5,7 @@ from mqtt import Mqtt
 from tibberlive import Tibberlive
 from watchdog import Watchdog
 
-__version__ = "1.6.0"
+__version__ = "1.6.1"
         
 
 async def main():
