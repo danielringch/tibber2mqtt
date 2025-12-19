@@ -4,7 +4,7 @@ log:
   count: 0 # optional; number of saved old log files. Zero does not delete any old log file.
 tibber:
   token: "tibbertoken" # alternatively, use environment variable T2M_TIBBER_TOKEN
-  home: "homeid" # alternatively, use environment variable T2M_TIBBER_TOKEN
+  home: "homeid" # alternatively, use environment variable T2M_TIBBER_HOME
   api_timeout: 5 # optional, timeout of the live data availability check (in seconds)
   websocket_timeout: 30 # optional, timeout of the websocket connect (in seconds)
 mqtt:
@@ -15,7 +15,7 @@ mqtt:
     host: "1.2.3.4:8883"
     topic: "bar/def"
     use_int16: true # optional, switches the payload to int16; use this only if your consumption/ production never exceeds +/- 32 kW
-    ca: "path/to/cert/ca/file.crt" # optional, onyl used for TLS connection
+    ca: "path/to/cert/ca/file.crt" # optional, only used for TLS connection
     tls_insecure: false # optional, must be set to true for self signed certificates
     user: "username" # optional, only for auth via username + password
     password: "password" # optional, only for auth via username + password
