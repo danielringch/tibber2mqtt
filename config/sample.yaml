@@ -1,26 +1,26 @@
 log:
-  level: "INFO" # optional, log level, possible values are DEBUG, INFO, WARNING, ERROR, CRITICAL
-  path: "~/foo.log" # optional; alternatively, use environment variable T2M_LOG_PATH
+  level: "INFO" # optional; log level, possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  path: "~/foo.log" # optional; environment variable: T2M_LOG_PATH
   count: 0 # optional; number of saved old log files. Zero does not delete any old log file.
 tibber:
-  token: "tibbertoken" # alternatively, use environment variable T2M_TIBBER_TOKEN
-  home: "homeid" # alternatively, use environment variable T2M_TIBBER_HOME
-  api_timeout: 5 # optional, timeout of the live data availability check (in seconds)
-  websocket_timeout: 30 # optional, timeout of the websocket connect (in seconds)
+  token: "tibbertoken" # environment variable: T2M_TIBBER_TOKEN
+  home: "homeid" # environment variable: T2M_TIBBER_HOME
+  api_timeout: 5 # optional; timeout of the live data availability check (in seconds)
+  websocket_timeout: 30 # optional; timeout of the websocket connect (in seconds)
 mqtt:
   server1: # a name of your choise, will be shown in the logs
-    host: "127.0.0.1:1883"
+    host: "127.0.0.1:1883" # environment variable: T2M_MQTT_HOST_server1
     topic: "foo/abc"
   server2:
-    host: "1.2.3.4:8883"
+    host: "1.2.3.4:8883" # environment variable: T2M_MQTT_HOST_server2
     topic: "bar/def"
-    use_int16: true # optional, switches the payload to int16; use this only if your consumption/ production never exceeds +/- 32 kW
-    ca: "path/to/cert/ca/file.crt" # optional, only used for TLS connection
-    tls_insecure: false # optional, must be set to true for self signed certificates
-    user: "username" # optional, only for auth via username + password
-    password: "password" # optional, only for auth via username + password
-    public_key: "path/to/cert/public/key/file.crt" # optional, only for auth via certificate
-    private_key: "path/to/cert/private/key/file.crt" # optional, only for auth via certificate
+    format: "int32" # optional; sets the payload data format; possible values: int32, int16, utf8
+    ca: "path/to/cert/ca/file.crt" # optional; only used for TLS connection
+    tls_insecure: false # optional; must be set to true for self signed certificates
+    user: "username" # optional; only for auth via username + password; environment variable: T2M_MQTT_USER_server2
+    password: "password" # optional; only for auth via username + password; environment variable: T2M_MQTT_PASS_server2
+    public_key: "path/to/cert/public/key/file.crt" # optional; only for auth via certificate
+    private_key: "path/to/cert/private/key/file.crt" # optional; only for auth via certificate
 watchdog:
   tolerance: 20 # maximum time between two live data packets (in seconds)
   timeout: 5 # delay between losing live data and reconnect (in seconds)

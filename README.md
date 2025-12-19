@@ -43,7 +43,7 @@ python3 -m pip install -r requirements.txt
 
 The configuration is done via yaml file. The example file can be found in [config/sample.yaml](config/sample.yaml)
 
-To keep sensitive content out of config files, some parameters can also be passed using environment variables. See the example config file for further explanations.
+To keep sensitive content out of config files, some parameters can be replaced by environment variables. See the example config file for the enviroment variable names.
 
 ## **Usage**
 
