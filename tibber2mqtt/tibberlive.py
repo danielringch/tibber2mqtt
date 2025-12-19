@@ -3,17 +3,18 @@ import aiohttp, asyncio, datetime, logging
 from gql import gql, Client
 from gql.transport.websockets import WebsocketsTransport
 
-from helpers import get_argument, get_optional_argument, walk_tree
+from config import get_config_key, get_optional_config_key
+from helpers import walk_tree
 
 _TIMESTAMP_DISCONNECTED = datetime.datetime.min
 
 class Tibberlive:
     def __init__(self, config: dict, mqtts: list):
 
-        home = get_argument(config, 'home', varname="T2M_TIBBER_HOME")
-        self.__token = get_argument(config, 'token', varname="T2M_TIBBER_TOKEN")
-        self.__api_timeout = int(get_optional_argument(config, 'api_timeout', default=5))
-        self.__websocket_timeout = int(get_optional_argument(config, 'websocket_timeout', default=30))
+        home = get_config_key(config, str, 'T2M_TIBBER_HOME', 'home')
+        self.__token = get_config_key(config, str, 'T2M_TIBBER_TOKEN', 'token')
+        self.__api_timeout = get_optional_config_key(config, int, 5, None, 'api_timeout')
+        self.__websocket_timeout = get_optional_config_key(config, int, 30, None, 'websocket_timeout')
 
         self.__available_request = {
             'query': '{ viewer { home(id: "%s") { features { realTimeConsumptionEnabled } } websocketSubscriptionUrl } }' % home

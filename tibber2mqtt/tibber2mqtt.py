@@ -1,7 +1,7 @@
 import argparse, asyncio, logging, sys, yaml
+from config import get_optional_config_key
 from logging.handlers import TimedRotatingFileHandler
 from mqtt import Mqtt
-from helpers import *
 from tibberlive import Tibberlive
 from watchdog import Watchdog
 
@@ -20,9 +20,9 @@ async def main():
         logging.critical(f'Failed to load config file {args.config}: {e}')
         exit()
 
-    log_level = get_optional_argument(config, 'log', 'level', varname='T2M_LOG_LEVEL', default='INFO')
+    log_level = get_optional_config_key(config, lambda x: getattr(logging, str(x).upper()), 'info', 'T2M_LOG_LEVEL', 'log', 'level')
     logger = logging.getLogger()
-    logger.setLevel(logging.getLevelName(log_level))
+    logger.setLevel(log_level)
     formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
 
     class ModuleFilter(logging.Filter):
@@ -34,8 +34,8 @@ async def main():
     stdout_handler.addFilter(ModuleFilter())
     logger.addHandler(stdout_handler)
 
-    log_file = get_optional_argument(config, 'log', 'path', varname='T2M_LOG_PATH')
-    backup_count = get_optional_argument(config, 'log', 'count', varname='T2M_LOG_COUNT', default=0)
+    log_file = get_optional_config_key(config, str, None, 'T2M_LOG_PATH', 'log', 'path')
+    backup_count = get_optional_config_key(config, int, 0, 'T2M_LOG_COUNT', 'log', 'count')
     if log_file is not None:
         file_handler = TimedRotatingFileHandler(log_file, when="midnight", interval=1, backupCount=backup_count)
         file_handler.setFormatter(formatter)

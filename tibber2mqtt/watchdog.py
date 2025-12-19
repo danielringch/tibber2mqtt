@@ -1,16 +1,16 @@
 import datetime, logging
 
-from helpers import get_argument
+from config import get_config_key
 from tibberlive import Tibberlive
 
 class Watchdog:
     def __init__(self, config: dict):
-        tolerance = int(get_argument(config, 'watchdog', 'tolerance'))
+        tolerance = get_config_key(config, int, None, 'watchdog', 'tolerance')
         self.__tolerance = datetime.timedelta(seconds=tolerance)
 
-        self.__timeout = int(get_argument(config, 'watchdog', 'timeout'))
+        self.__timeout = get_config_key(config, int, None, 'watchdog', 'timeout')
 
-        self.__maximum_timeout = int(get_argument(config, 'watchdog', 'maximum_timeout'))
+        self.__maximum_timeout = get_config_key(config, int, None, 'watchdog', 'maximum_timeout')
 
         self.__current_timeout = None
 

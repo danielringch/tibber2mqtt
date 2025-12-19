@@ -1,7 +1,7 @@
 import logging, struct
 import paho.mqtt.client as mqtt
 from ssl import CERT_NONE
-from helpers import *
+from config import get_config_key, get_optional_config_key
 
 _HOST_VAR_NAME = 'T2M_MQTT_HOST_{}'
 _USER_VAR_NAME = 'T2M_MQTT_USER_{}'
@@ -17,26 +17,26 @@ class Mqtt():
     def __init__(self, name: str, config: dict):
         self.__name = name
 
-        self.__encoder = _ENCODERS[str(get_optional_argument(config, 'format', default='int32'))]
+        self.__encoder = _ENCODERS[get_optional_config_key(config, str, 'int32', None, 'format')]
 
         self.__mqtt = mqtt.Client()
         self.__mqtt.on_connect = self.__on_connect
 
-        ip, port = str(get_argument(config, 'host', varname=_HOST_VAR_NAME.format(self.__name))).split(':')
+        ip, port = get_config_key(config, lambda x: str(x).split(':'), _HOST_VAR_NAME.format(self.__name), 'host')
 
-        ca = get_optional_argument(config, 'ca')
-        public_key = get_optional_argument(config, 'public_key')
-        private_key = get_optional_argument(config, 'private_key')
-        tls_insecure = get_optional_argument(config, 'tls_insecure')
-        if ca or tls_insecure or public_key or private_key:
-            self.__mqtt.tls_set(ca_certs=ca, certfile=public_key, keyfile=private_key, cert_reqs=CERT_NONE if tls_insecure else None)
+        ca_path = get_optional_config_key(config, str, None, None, 'ca')
+        public_key_path = get_optional_config_key(config, str, None, None, 'public_key')
+        private_key_path = get_optional_config_key(config, str, None, None, 'private_key')
+        is_tls_insecure = get_optional_config_key(config, bool, False, None, 'tls_insecure')
+        if ca_path or is_tls_insecure or public_key_path or private_key_path:
+            self.__mqtt.tls_set(ca_certs=ca_path, certfile=public_key_path, keyfile=private_key_path, cert_reqs=CERT_NONE if is_tls_insecure else None)
 
-        user = get_optional_argument(config, 'user', varname=_USER_VAR_NAME.format(self.__name))
-        password = get_optional_argument(config, 'password', varname=_PASS_VAR_NAME.format(self.__name))
+        user = get_optional_config_key(config, str, None, _USER_VAR_NAME.format(self.__name), 'user')
+        password = get_optional_config_key(config, str, None, _PASS_VAR_NAME.format(self.__name), 'password')
         if user or password:
             self.__mqtt.username_pw_set(user, password)
 
-        self.__topic = get_argument(config, 'topic')
+        self.__topic = get_config_key(config, str, None, 'topic')
 
         self.__mqtt.connect(ip, int(port), 60)
         self.__mqtt.loop_start()
