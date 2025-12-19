@@ -17,9 +17,9 @@ class Mqtt():
         ca = get_optional_argument(config, 'ca')
         public_key = get_optional_argument(config, 'public_key')
         private_key = get_optional_argument(config, 'private_key')
-        if ca or public_key or private_key:
-            insecure = get_optional_argument(config, 'tls_insecure') == True
-            self.__mqtt.tls_set(ca_certs=ca, certfile=public_key, keyfile=private_key, cert_reqs=CERT_NONE if insecure else None)
+        tls_insecure = get_optional_argument(config, 'tls_insecure')
+        if ca or tls_insecure or public_key or private_key:
+            self.__mqtt.tls_set(ca_certs=ca, certfile=public_key, keyfile=private_key, cert_reqs=CERT_NONE if tls_insecure else None)
 
         user = get_optional_argument(config, 'user')
         password = get_optional_argument(config, 'password')
