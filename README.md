@@ -1,4 +1,5 @@
 # tibber2mqtt
+
 Publishes Tibber live consumption data from Tibber API per MQTT.
 
 ## Introduction
@@ -56,7 +57,26 @@ python3 -B tibber2mqtt/tibber2mqtt.py --config /path/to/your/config/file.yaml
 
 ## Usage with docker
 
-TBD
+This program is also available as docker container:
+
+```
+docker pull danielringch/tibber2mqtt:latest
+```
+
+The container expects the configuration file at ``/config/tibber2mqtt.yaml``
+
+Example:
+
+```
+docker run --rm -it \
+  -v /path/to/config/file:/config \
+  -e T2M_TIBBER_TOKEN="my_token" \
+  -e T2M_TIBBER_HOME="my_home_id" \
+  -e T2M_MQTT_HOST_my_server="212.132.65.187:8883" \
+  -e T2M_MQTT_USER_my_server="user" \
+  -e T2M_MQTT_PASS_my_server="password" \
+  danielringch/tibber2mqtt
+```
 
 ## **Get support**
 
